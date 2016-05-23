@@ -77,7 +77,7 @@ rtl_eeprom -d 0 -s 00000002</li>
 </ul>
 
 <p>The basic prerequisite is to synchronize clocks of the dongles. In order to do that remove the oscillator form the second dongle and connect the two dongles according to the photos below:
-<img src="https://github.com/ptrkrysik/multi_rtl/blob/rollout/docs/images/dongles_with_common_clock.jpg" alt="dongles with common clock"></p>
+<img src="https://raw.githubusercontent.com/ptrkrysik/multi-rtl/rollout/docs/images/dongles_with_common_clock.jpg" alt="dongles with common clock"></p>
 
 <p>I've created a sample gnuradio-companion aplication (mutlirtl_rx_to_cfile_2chan.grc) that enables two channel reception and storing the signals to files. It's flowgraph is presented below. It is very simple - there is <code>Multi-rtl</code> source configured to work with two channels then there are head blocks limiting number of recorded samples and in the end for each of the channels signals are stored to files with use of file sink blocks.</p>
 
@@ -91,17 +91,17 @@ rtl_eeprom -d 0 -s 00000002</li>
 
 <ul>
 <li>
-<a href="data/sms_multirtl_downlink_tail">downlink capture file</a>,</li>
+<a href="https://github.com/ptrkrysik/test_data/raw/master/sms_multirtl_downlink_tail.cfile">downlink capture file</a>,</li>
 <li>
-<a href="data/sms_multirtl_uplink_tail">uplink capture file</a>.</li>
+<a href="https://github.com/ptrkrysik/test_data/raw/master/sms_multirtl_uplink_tail.cfile">uplink capture file</a>.</li>
 </ul>
 
-<p>As I could recover the key used for my own call/SMS I was able to decode the encrypted part of the traffic with the SMS content. To decode the signal <a href="https://github.com/ptrkrysik/gr-gsm/wiki/Installation">installation of gr-gsm</a> is required. After that call the following copy the <a href="https://raw.githubusercontent.com/ptrkrysik/examples/master/uplink_decoding_demo/uplink_decoding_multi_rtl.py">uplink_decoding_multi_rtl.py</a> script from <code>gr-gsm</code>'s examples to the directory where the capture files are located, and run commandline:</p>
+<p>As I could recover the key used for my own call/SMS I was able to decode the encrypted part of the traffic with the SMS content. To decode the signal <a href="https://github.com/ptrkrysik/gr-gsm/wiki/Installation">installation of gr-gsm</a> is required. After that call the following copy the <a href="https://raw.githubusercontent.com/ptrkrysik/examples/master/uplink_decoding_demo/uplink_decoding_multi_rtl.py">uplink_decoding_multi_rtl.py</a> script from <code>gr-gsm</code>'s examples to the directory where the capture files are located, then start <code>Wireshark</code> and run the script:</p>
 
 <div class="highlight highlight-source-shell"><pre>wireshark -k -f udp -Y gsmtap -i lo <span class="pl-k">&amp;</span>
 ./uplink_decoding_multi_rtl.py</pre></div>
 
-<p>In the <code>Wireshark</code> </p>
+<p><code>Wireshark</code> should capture decoded messages. Among them there is </p>
       </section>
     </div>
 
