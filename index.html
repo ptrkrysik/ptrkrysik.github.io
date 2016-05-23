@@ -59,8 +59,8 @@
 
 <p>What was left was to get hands dirty and implement a program that does all these steps. I decided that the simplest way to implement the software was to create a GNU Radio hierarchical block that uses multiple RTL-SDR source blocks (created by <a href="http://sdr.osmocom.org/trac/wiki/GrOsmoSDR">osmocom project</a>) - one for each dongle comprising a channel. First I wanted to do everything with use of Python only. I used off the shelf vetor sink block to get signals samples to Python. Then the delays were and then reconfigured the flowgrap in order to disconnect the vector sinks - so they don't save samples indefinitely. This solution proved to be wrong as after each reconfiguration of the flowgraph relative delays of channels changed randomly. In order to avoid modifying the path that I've chosen initially too much I decided to change vector sink block's C++ code so it fit the needs. I've extendded number of input channels (from one to any number), added possibility to limit the number of sample collected, and added call to a callback function when this number is reached. The callback function takes samples stored for each channel and does the steps described in the previous paragraph, needed in order to synchronize the received streams.</p>
 
-<h2>
-<a id="capturing-gsm-downlink-and-uplink-with-multi-rtl" class="anchor" href="#capturing-gsm-downlink-and-uplink-with-multi-rtl" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Capturing GSM downlink and uplink with Multi-rtl</h2>
+<h1>
+<a id="capturing-gsm-downlink-and-uplink-with-multi-rtl" class="anchor" href="#capturing-gsm-downlink-and-uplink-with-multi-rtl" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Capturing GSM downlink and uplink with Multi-rtl</h1>
 
 <p>The usage of the block is presented in the <a href="https://github.com/ptrkrysik/multi_rtl/tree/master#usage">project's readme</a>. Here I will present the example of the use of Multi-rtl source block for synchronous reception of downlink and uplink of a GSM C0 channel. As a prerequisite two RTL-SDR dongles are needed. </p>
 
@@ -80,7 +80,7 @@ rtl_eeprom -d 0 -s 00000002</li>
 <img src="https://raw.githubusercontent.com/ptrkrysik/multi-rtl/rollout/docs/images/dongles_with_common_clock.jpg" alt="dongles with common clock"></p>
 
 <p>The assembled receiver with antennas and a USB hub is shown below:
-<img src="images/rtl_retune_sync_check_2.jpg" alt="Complete receiver"></p>
+<img src="images/multi_rtl_receiver_sm.jpg" alt="Complete receiver"></p>
 
 <p>I've created a sample gnuradio-companion aplication (mutlirtl_rx_to_cfile_2chan.grc) that enables two channel reception and storing the signals to files. It's flowgraph is presented below. It is very simple - there is <code>Multi-rtl</code> source configured to work with two channels then there are head blocks limiting number of recorded samples and in the end for each of the channels signals are stored to files with use of file sink blocks.</p>
 
