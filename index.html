@@ -76,8 +76,11 @@ rtl_eeprom -d 0 -s 00000002</li>
 <li>mark the dongle so you know that it's the second one.</li>
 </ul>
 
-<p>The basic prerequisite is to synchronize clocks of the dongles. In order to do that remove the oscillator form the second dongle and connect the two dongles according to the photos below:
+<p>The basic prerequisite is to synchronize clocks of the dongles. In order to do that remove the oscillator form the second dongle and connect the two dongles according to the photo below:
 <img src="https://raw.githubusercontent.com/ptrkrysik/multi-rtl/rollout/docs/images/dongles_with_common_clock.jpg" alt="dongles with common clock"></p>
+
+<p>The assembled receiver with antennas and a USB hub is shown below:
+<img src="images/rtl_retune_sync_check_2.jpg" alt="Complete receiver"></p>
 
 <p>I've created a sample gnuradio-companion aplication (mutlirtl_rx_to_cfile_2chan.grc) that enables two channel reception and storing the signals to files. It's flowgraph is presented below. It is very simple - there is <code>Multi-rtl</code> source configured to work with two channels then there are head blocks limiting number of recorded samples and in the end for each of the channels signals are stored to files with use of file sink blocks.</p>
 
@@ -87,7 +90,7 @@ rtl_eeprom -d 0 -s 00000002</li>
 
 <div class="highlight highlight-source-shell"><pre>mutlirtl_rx_to_cfile_2chan.py --ch0-id-string=<span class="pl-s"><span class="pl-pds">"</span>00000001<span class="pl-pds">"</span></span> --ch1-id-string=<span class="pl-s"><span class="pl-pds">"</span>00000002<span class="pl-pds">"</span></span> --samp-rate 1083333.3333333333 --freq-ch0 939M --freq-ch1 894M --sync-freq 939e6 --gain-ch0 30 --gain-ch1 10 --sync-gain-ch0 30 --sync-gain-ch1 30 --fname-ch0 downlink.cfile --fname-ch1 uplink-cfile</pre></div>
 
-<p>During the recording I've sent an SMS with my phone that was working on the recorded frequency. The resulting files can be downloaded with use of the links below:</p>
+<p>During the recording I've sent an SMS with my phone that was working on the recorded frequency. The resulting files (renamed to <code>sms_multirtl_downlink_tail.cfile</code> and <code>sms_multirtl_uplink_tail.cfile</code>) can be downloaded with use of the links below:</p>
 
 <ul>
 <li>
