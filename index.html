@@ -65,7 +65,10 @@
 
 <p>In order to avoid modifying the path that I've chosen initially too much I decided to change vector sink block's C++ code so it fit the needs. I've extendded number of input channels (from one to any number), added possibility to limit the number of sample collected, and added call to a callback function when this number is reached. The callback function takes samples stored for each channel and does the steps described previously, needed in order to synchronize the received streams. Most of the work was done during winter break - until 12'th January 2016. The resulting hierarchical <code>GNU Radio</code> block is called <code>Multi-rtl</code>.</p>
 
-<p>In October 2015 Teejez has uploaded to the github his <a href="https://github.com/tejeez/rtl_coherent">rtl_coherent</a> project - software that automatizes synchronization between receivers working on the same frequency, with some additional hardware modifications required. He used additional synchronization signal that was introduced through switching of receivers' RF inputs to connect them to common noise signal generator and then reconnect them to antennas. I was made aware of <code>rtl_coherent</code> project only recently - when I was finishing to write this text.</p>
+<p>The example of recording with a two channel <code>Multi-rtl</code> receiver is shown at the pictures below. The recorded was GSM signal and the result is presented in the same way as previously - with amplitude of a signal in GSM times-lots plotted as horizontal lines of pixels in the images. At the beginning there is synchronization phase when the signals coming from input 1 and input 2 of the receiver are not aligned in time yet. In this period between input 1 and input 2 is calculated and at the end correction is applied to the input 2. From that moment inputs of the receiver are synchronized.
+<img src="images/two_channel_result.png" alt="Two channel result"></p>
+
+<p>In October 2015 Teejez has uploaded to the github his <a href="https://github.com/tejeez/rtl_coherent">rtl_coherent</a> project - software that automatizes synchronization between receivers working on the same frequency, with some additional hardware modifications required. He used additional synchronization signal that is introduced through switching of receivers' RF inputs, to connect them to common noise signal generator and then reconnect them to antennas. I was made aware of <code>rtl_coherent</code> project only recently - when I was finishing to write this text.</p>
 
 <h2>
 <a id="capturing-gsm-downlink-and-uplink-with-multi-rtl" class="anchor" href="#capturing-gsm-downlink-and-uplink-with-multi-rtl" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Capturing GSM downlink and uplink with Multi-rtl</h2>
@@ -85,12 +88,12 @@ rtl_eeprom -d 0 -s 00000002</li>
 </ul>
 
 <p>The basic prerequisite is to synchronize clocks of the dongles. In order to do that remove the oscillator form the second dongle and connect the two dongles according to the photo below:
-<img src="https://raw.githubusercontent.com/ptrkrysik/multi-rtl/rollout/docs/images/dongles_with_common_clock.jpg" alt="dongles with common clock"></p>
+<img src="https://raw.githubusercontent.com/ptrkrysik/multi-rtl/master/docs/images/dongles_with_common_clock.jpg" alt="dongles with common clock"></p>
 
 <p>The assembled receiver with antennas and a USB hub is shown below:
 <img src="images/multi_rtl_receiver_sm.jpg" alt="Complete receiver"></p>
 
-<p>I've created a sample gnuradio-companion application (mutlirtl_rx_to_cfile_2chan.grc) that enables two channel reception and storing the signals to files. It's flow-graph is presented below. It is very simple - there is <code>Multi-rtl</code> source configured to work with two channels then there are head blocks limiting number of recorded samples and in the end for each of the channels signals are stored to files with use of file sink blocks.</p>
+<p>I've created a sample gnuradio-companion application (<a href="">mutlirtl_rx_to_cfile_2chan.grc</a>) that enables two channel reception and storing the signals to files. It's flow-graph is presented below. It is very simple - there is <code>Multi-rtl</code> source configured to work with two channels then there are head blocks limiting number of recorded samples and in the end for each of the channels signals are stored to files with use of file sink blocks.</p>
 
 <p><img src="images/multi_rx_to_cfile_2chan.png" alt="Sample two channel application using Multi-rtl"></p>
 
