@@ -1,31 +1,28 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
-    <meta charset='utf-8'>
+    <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
-
     <title>Piotr Krysik&#39;s webpage by ptrkrysik</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <meta name="viewport" content="width=device-width">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
   </head>
-
   <body>
-
-    <header>
-      <div class="container">
+    <div class="wrapper">
+      <header>
         <h1>Piotr Krysik&#39;s webpage</h1>
-        <h2></h2>
+        <p></p>
 
-        <section id="downloads">
-          <a href="https://github.com/ptrkrysik" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
-        </section>
-      </div>
-    </header>
 
-    <div class="container">
-      <section id="main_content">
+        <p class="view"><a href="https://github.com/ptrkrysik">View My GitHub Profile</a></p>
+
+      </header>
+      <section>
         <h1>
 <a id="multi-rtl-" class="anchor" href="#multi-rtl-" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Multi-rtl </h1>
 
@@ -38,13 +35,11 @@
 
 <p>What was missing was time-synchronization between <code>RTL-SDR</code> dongles. When you start multiple <code>RTL-SDR</code> dongles at the roughly the same moment there always will be random delays (changing from one program start to another) between the sample streams coming from different receiver. YO3IIU <a href="http://yo3iiu.ro/blog/?p=1450">presented</a> synchronization of the receivers working on the same frequency with use of cross-correlation of the signals coming from many receivers. It was done off-line - on files with the captured signal stored to disk - and no way to synchronize channels that work on different frequencies was demonstrated. This way it wasn't possible to capture for example GSM uplink and downlink synchronously as they are on different frequencies with large (at 45MHz for GSM900) separation.</p>
 
-<p>In October 2015 Teejez has uploaded to the github his <a href="https://github.com/tejeez/rtl_coherent">rtl_coherent</a> project - software that  automatizes synchronization between receivers working on the same frequency with some additional hardware modifications required. He used additional synchronization signal that was introduced through switching of receivers' RF inputs to connect them to common noise signal generator and then reconnect them to antennas. But I got aware of that project a bit too late - when I was writing this text.</p>
-
-<p>So time passed but somehow no ready-made solution materialized (Teejez's project wasn't available yet). At some point I decided that some effort from my side might be required in order to speed up this process a bit.</p>
+<p>So time passed but somehow no ready-made solution materialized. At some point (beginning of December 2015) I decided that some effort from my side might be required in order to speed up this process a bit.</p>
 
 <p>Before I decided to code time-synchronization myself <a href="https://groups.google.com/d/msg/gr-gsm/4YiTK4WqFvs/VsFBpDoXCQAJ">I have already shown</a> that <code>RTL-SDR</code> receivers keep time-synchronization across re-tunings to different carrier frequencies. I will show it again here with a bit more of the background information.</p>
 
-<p>I've coded the test so it first started with recording a signal on a GSM C0 (BCCH) frequency, then it switched to another central frequency where only noise was present and in the end it switched back to the same GSM C0 frequency. The GSM signal's amplitude is periodic with the period of 156.25us - equal to the duration of one <a href="https://en.wikipedia.org/wiki/Um_interface#Radio_modem">GSM TDMA time slot</a>. Each GSM burst transmitted inside of time slot has constant amplitude. After it there is always 8.25us long guard period when signal amplitude decreases to 0. If you sample the signal with <code>4*gsm_symbold_rate=4*1625000/6=1.08333... MHz</code> the length of a time slot in samples is 625. The easy way giving indication that the signal didn't loose synchronization is to look if guard periods are in the expected position. In order to do this graphically I've cut the signal into blocks of the length of a single time slot, created a matrix with consecutive bursts in the rows and plotted the matrix as an image with pixels intensity representing amplitude. The result can be observed on the image below:
+<p>I've coded the test so it first started with recording a signal on a GSM C0 (BCCH) frequency, then it switched to another central frequency where only noise was present and in the end it switched back to the same GSM C0 frequency. The GSM signal's amplitude is periodic with the period of 156.25us - equal to the duration of one <a href="https://en.wikipedia.org/wiki/Um_interface#Radio_modem">GSM TDMA time slot</a>. Each GSM burst transmitted inside of time slot has constant amplitude. After a burst there is always 8.25us long guard period when signal amplitude decreases to 0. If you sample the signal with <code>4*gsm_symbold_rate=4*1625000/6=1.08333... MHz</code> the length of a time slot in samples is 625. The easy way giving indication that the signal didn't loose synchronization is to look if guard periods are in the expected positions. In order to do this graphically I've cut the signal into blocks of the length of a single time slot, created a matrix with consecutive bursts in the rows and plotted the matrix as an image with pixels intensity representing amplitude. The result can be observed on the image below:
 <img src="images/rtl_retune_sync_check.jpg" alt="RTL-SDR retune synchronization test"></p>
 
 <p>You can first see the amplitude of the GSM signal, then amplitude of noise and in the end amplitude of the GSM signal again. What can be seen is that guard periods after two retunes of a <code>RTL-SDR</code> receiver are aligned. The same situation repeated for all recordings I made. Synchronization is kept. Hurray!</p>
@@ -66,6 +61,8 @@
 <p>First I wanted to do everything with use of Python only. I used off the shelf vetor sink block to get signals samples to Python. Then the delays were and then reconfigured the flowgrap in order to disconnect the vector sinks - so they don't save samples indefinitely. This solution proved to be wrong as after each reconfiguration of the flowgraph relative delays of channels changed randomly. </p>
 
 <p>In order to avoid modifying the path that I've chosen initially too much I decided to change vector sink block's C++ code so it fit the needs. I've extendded number of input channels (from one to any number), added possibility to limit the number of sample collected, and added call to a callback function when this number is reached. The callback function takes samples stored for each channel and does the steps described in the previous paragraph, needed in order to synchronize the received streams. Most of the work was done during winter break - until 12'th January 2016. The resulting hierarchical <code>GNU Radio</code> block is called <code>Multi-rtl</code>.</p>
+
+<p>In October 2015 Teejez has uploaded to the github his <a href="https://github.com/tejeez/rtl_coherent">rtl_coherent</a> project - software that  automatizes synchronization between receivers working on the same frequency with some additional hardware modifications required. He used additional synchronization signal that was introduced through switching of receivers' RF inputs to connect them to common noise signal generator and then reconnect them to antennas. But by that time I was already writing <code>Multi-rtl</code> and I was made aware of <code>rtl_coherent</code> project only recently - when I was finishing to write this text.</p>
 
 <h2>
 <a id="capturing-gsm-downlink-and-uplink-with-multi-rtl" class="anchor" href="#capturing-gsm-downlink-and-uplink-with-multi-rtl" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Capturing GSM downlink and uplink with Multi-rtl</h2>
@@ -123,11 +120,11 @@ rtl_eeprom -d 0 -s 00000002</li>
 
 <p><code>Multi-rtl</code> adds time-synchronization to <code>RTL-SDR</code> receivers sharing a common clock. There are many possible use-cases of this capability. </p>
 
-<p>For example multiple receivers can be working on the same frequency. This enables applications like passive radar. One dongle can be connected to the antenna picking up reference signal and other receivers can be connected to antennas gathering objects' echoes. This possibility was shown by <a href="http://hackaday.com/2015/06/05/building-your-own-sdr-based-passive-radar-on-a-shoestring/">Juha Vierinen</a>. Time synchronization was (most probably) done in off-line processing - which is very fine for a proof of concept but not convenient for an user application. </p>
+<p>For example - multiple receiving channels can be working on the same frequency. This enables applications like passive radar. One dongle can be connected to the antenna picking up reference signal and other receivers can be connected to antennas gathering objects' echoes. This possibility was shown by <a href="http://hackaday.com/2015/06/05/building-your-own-sdr-based-passive-radar-on-a-shoestring/">Juha Vierinen</a>. Time synchronization was (most probably) done in off-line processing - which is very fine for a proof of concept but not convenient for an user application. </p>
 
 <p>Regarding Teejez's <a href="https://github.com/tejeez/rtl_coherent">rtl_coherent</a> - it achieves the goal of synchronizing multiple RTL-SDR receivers working on the same carrier frequency but it requires additional noise source and switches to synchronize RTL-SDR receivers working on the same frequency. <code>Multi-rtl</code> receiver is simpler because it uses frequency switching (no RF switches required) and for synchronization it utilizes signals available in the air (additional generator is not necessary). Having a synchronization signal source that you control might be valuable for reliability of time-difference estimation but it increases cost a bit and adds some complication that might be harder to overcome by the newcomers.</p>
 
-<p><strong>With <code>Multi-rtl</code> all RX channel can also work synchronously on different central frequencies</strong>. Addition of this capability is the most original contribution that <code>Multi-rtl</code> brings to <code>RTL-SDR</code> world and it achieves that with simple and universal means . This makes possible many applications where received signals' are spread over frequency range that exceeds maximum sampling rate of a single <code>RTL-SDR</code> receiver, like:</p>
+<p><strong>With <code>Multi-rtl</code> all RX channel can also work synchronously on different central frequencies</strong>. Addition of this capability is the most original contribution that <code>Multi-rtl</code> brings to <code>RTL-SDR</code> world and it achieves that goal with simple and universal means. This makes possible many applications where received signals' are spread over frequency range that exceeds maximum sampling rate of a single <code>RTL-SDR</code> receiver, like:</p>
 
 <ul>
 <li>reception of GSM downlink and uplink simultaneously,</li>
@@ -140,8 +137,11 @@ rtl_eeprom -d 0 -s 00000002</li>
 
 <p>What is left to be done in the <code>Multi-rtl</code> is to add automatic resynchronization whenever some interruption in the communication with any of the receivers occurs. Currently an overflow of a buffer in a <code>RTL-SDR</code> receiver causes synchronization loss, until user call resynchronization function himself. <code>Multi-rtl</code> needs some way to know from <code>osmocom source</code> that an overflow happened. <code>osmocom source</code> doesn't inform <code>GNU Radio</code> blocks connected to it about communication problems yet, but it could send this information downstream with use of <code>GNU Radio</code>'s stream tags.</p>
       </section>
+      <footer>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
     </div>
-
+    <script src="javascripts/scale.fix.js"></script>
     
   </body>
 </html>
