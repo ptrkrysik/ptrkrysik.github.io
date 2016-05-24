@@ -1,32 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="en-us">
   <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
-
+    <meta charset="UTF-8">
     <title>Piotr Krysik&#39;s webpage by ptrkrysik</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
   </head>
-
   <body>
+    <section class="page-header">
+      <h1 class="project-name">Piotr Krysik&#39;s webpage</h1>
+      <h2 class="project-tagline"></h2>
+    </section>
 
-    <header>
-      <div class="container">
-        <h1>Piotr Krysik&#39;s webpage</h1>
-        <h2></h2>
-
-        <section id="downloads">
-          <a href="https://github.com/ptrkrysik" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
-        </section>
-      </div>
-    </header>
-
-    <div class="container">
-      <section id="main_content">
-        <h1>
+    <section class="main-content">
+      <h1>
 <a id="multi-rtl-" class="anchor" href="#multi-rtl-" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Multi-rtl </h1>
 
 <h2>
@@ -121,10 +111,13 @@ rtl_eeprom -d 0 -s 00000002</li>
 <h2>
 <a id="summary" class="anchor" href="#summary" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Summary</h2>
 
-<p><code>Multi-rtl</code> adds time-synchronization to <code>RTL-SDR</code> receivers sharing a common clock. There are many possible use-cases of this capability. For example multiple receivers can be working on the same frequency. This enables applications like passive radar. One dongle can be connected to
-the antenna picking up reference signal and other receivers can be connected to antennas gathering objects' echoes. This possibility was shown by <a href="http://hackaday.com/2015/06/05/building-your-own-sdr-based-passive-radar-on-a-shoestring/">Juha Vierinen</a>. Time synchronization was (most probably) done in off-line processing - which is very fine for a proof of concept but not convenient for an user application. Regarding Teejez's <a href="https://github.com/tejeez/rtl_coherent">rtl_coherent</a> - it requires additional noise source and switches to synchronize RTL-SDR receivers working on the same frequency. <code>Multi-rtl</code> receiver is simpler because it uses frequency switching (no RF switches required) and utilizes signals available in the air (additional generator is not necessary). Having a synchronization signal source that you control might be valuable for reliability of time-difference estimation but it increases cost a bit and adds some complication that might be harder to overcome by the newcomers.</p>
+<p><code>Multi-rtl</code> adds time-synchronization to <code>RTL-SDR</code> receivers sharing a common clock. There are many possible use-cases of this capability. </p>
 
-<p>With <code>Multi-rtl</code> all RX channel can work synchronously on different central frequencies. Addition of this capability with simple and universal means is the most original contribution that <code>Multi-rtl</code> brings to <code>RTL-SDR</code> world. It makes possible many applications where received signals' are spread over frequency range that exceeds maximum sampling rate of a single <code>RTL-SDR</code> receiver, like:</p>
+<p>For example multiple receivers can be working on the same frequency. This enables applications like passive radar. One dongle can be connected to the antenna picking up reference signal and other receivers can be connected to antennas gathering objects' echoes. This possibility was shown by <a href="http://hackaday.com/2015/06/05/building-your-own-sdr-based-passive-radar-on-a-shoestring/">Juha Vierinen</a>. Time synchronization was (most probably) done in off-line processing - which is very fine for a proof of concept but not convenient for an user application. </p>
+
+<p>Regarding Teejez's <a href="https://github.com/tejeez/rtl_coherent">rtl_coherent</a> - it achieves the goal of synchronizing multiple RTL-SDR receivers working on the same carrier frequency but it requires additional noise source and switches to synchronize RTL-SDR receivers working on the same frequency. <code>Multi-rtl</code> receiver is simpler because it uses frequency switching (no RF switches required) and for synchronization it utilizes signals available in the air (additional generator is not necessary). Having a synchronization signal source that you control might be valuable for reliability of time-difference estimation but it increases cost a bit and adds some complication that might be harder to overcome by the newcomers.</p>
+
+<p><strong>With <code>Multi-rtl</code> all RX channel can also work synchronously on different central frequencies</strong>. Addition of this capability is the most original contribution that <code>Multi-rtl</code> brings to <code>RTL-SDR</code> world and it achieves that with with simple and universal means . It makes possible many applications where received signals' are spread over frequency range that exceeds maximum sampling rate of a single <code>RTL-SDR</code> receiver, like:</p>
 
 <ul>
 <li>reception of GSM downlink and uplink simultaneously,</li>
@@ -136,9 +129,14 @@ the antenna picking up reference signal and other receivers can be connected to 
 
 
 <p>What is left to be done in the <code>Multi-rtl</code> is to add automatic resynchronization whenever some interruption in the communication with any of the receivers occurs. Currently an overflow of a buffer in a <code>RTL-SDR</code> receiver causes synchronization loss, until user call resynchronization function himself. <code>Multi-rtl</code> needs some way to know from <code>osmocom source</code> that an overflow happened. <code>osmocom source</code> doesn't inform <code>GNU Radio</code> blocks connected to it about communication problems yet, but it could send this information downstream with use of <code>GNU Radio</code>'s stream tags.</p>
-      </section>
-    </div>
 
-    
+      <footer class="site-footer">
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
   </body>
 </html>
