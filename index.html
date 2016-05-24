@@ -1,28 +1,31 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
     <title>Piotr Krysik&#39;s webpage by ptrkrysik</title>
-
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/github-light.css">
-    <meta name="viewport" content="width=device-width">
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
   </head>
+
   <body>
-    <div class="wrapper">
-      <header>
+
+    <header>
+      <div class="container">
         <h1>Piotr Krysik&#39;s webpage</h1>
-        <p></p>
+        <h2></h2>
 
+        <section id="downloads">
+          <a href="https://github.com/ptrkrysik" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+        </section>
+      </div>
+    </header>
 
-        <p class="view"><a href="https://github.com/ptrkrysik">View My GitHub Profile</a></p>
-
-      </header>
-      <section>
+    <div class="container">
+      <section id="main_content">
         <h1>
 <a id="multi-rtl-" class="anchor" href="#multi-rtl-" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Multi-rtl </h1>
 
@@ -31,7 +34,7 @@
 
 <p>As a developer of <a href="https://github.com/ptrkrysik/gr-gsm/"><code>gr-gsm</code></a> project - a <code>GNU Radio</code> based software for receiving GSM signal - I always thought that it would be great to have a multiple channels receiver that would be available for anyone. The reason is that it would be possible to do more with my software for all users who are interested in giving it a try and not only those who can afford a multichannel device like a <code>USRP</code>. For example: with two channel receiver it would be possible to receive uplink of a GSM channel in addition to downlink. To achieve this with <code>USRPs N200</code> two devices synchronized with a special cable are required. Total price of such solution is about 4 thousand dolars - too big amount for someone who starts journey with software defined radio and who at the same time might be interested in <code>gr-gsm</code>.</p>
 
-<p><a href="https://groups.google.com/d/msg/gr-gsm/4YiTK4WqFvs/BycVCdvNBwAJ">I was reluctant</a> to implement a cheap receiver with multiple RF channels myself. I thought that it was a matter of a short time before someone demonstrate a working solution transforming cheap <code>RTL-SDR</code> dongles (digital television receivers re-purposed to act as a software radio receivers) to a multi-channel receiver. I had good reasons to think that it will eventually happen. There was already some important work done on this subject, starting with <a href="http://kaira.sgo.fi/2013/09/16-dual-channel-coherent-digital.html">Juha Vierinen's idea</a> to synchronize clocks of multiple <code>RTL-SDR</code> receivers, so they were sampling with exactly the same rate.</p>
+<p><a href="https://groups.google.com/d/msg/gr-gsm/4YiTK4WqFvs/BycVCdvNBwAJ">I was reluctant</a> to implement a cheap receiver with multiple RF channels myself. I thought that it was a matter of a short time before someone demonstrate a working solution transforming cheap <code>RTL-SDR</code> dongles (digital television receivers re-purposed to act as a software radio receivers) into a multi-channel receiver. I had good reasons to think that it will eventually happen. There was already some important work done on this subject, starting with <a href="http://kaira.sgo.fi/2013/09/16-dual-channel-coherent-digital.html">Juha Vierinen's idea</a> to synchronize clocks of multiple <code>RTL-SDR</code> receivers, so they were sampling with exactly the same rate.</p>
 
 <p>What was missing was time-synchronization between <code>RTL-SDR</code> dongles. When you start multiple <code>RTL-SDR</code> dongles at the roughly the same moment there always will be random delays (changing from one program start to another) between the sample streams coming from different receiver. YO3IIU <a href="http://yo3iiu.ro/blog/?p=1450">presented</a> synchronization of the receivers working on the same frequency with use of cross-correlation of the signals coming from many receivers. It was done off-line - on files with the captured signal stored to disk - and no way to synchronize channels that work on different frequencies was demonstrated. This way it wasn't possible to capture for example GSM uplink and downlink synchronously as they are on different frequencies with large (at 45MHz for GSM900) separation.</p>
 
@@ -60,9 +63,9 @@
 
 <p>First I wanted to do everything with use of Python only. I used off the shelf vetor sink block to get signals samples to Python. Then the delays were and then reconfigured the flowgrap in order to disconnect the vector sinks - so they don't save samples indefinitely. This solution proved to be wrong as after each reconfiguration of the flowgraph relative delays of channels changed randomly. </p>
 
-<p>In order to avoid modifying the path that I've chosen initially too much I decided to change vector sink block's C++ code so it fit the needs. I've extendded number of input channels (from one to any number), added possibility to limit the number of sample collected, and added call to a callback function when this number is reached. The callback function takes samples stored for each channel and does the steps described in the previous paragraph, needed in order to synchronize the received streams. Most of the work was done during winter break - until 12'th January 2016. The resulting hierarchical <code>GNU Radio</code> block is called <code>Multi-rtl</code>.</p>
+<p>In order to avoid modifying the path that I've chosen initially too much I decided to change vector sink block's C++ code so it fit the needs. I've extendded number of input channels (from one to any number), added possibility to limit the number of sample collected, and added call to a callback function when this number is reached. The callback function takes samples stored for each channel and does the steps described previously, needed in order to synchronize the received streams. Most of the work was done during winter break - until 12'th January 2016. The resulting hierarchical <code>GNU Radio</code> block is called <code>Multi-rtl</code>.</p>
 
-<p>In October 2015 Teejez has uploaded to the github his <a href="https://github.com/tejeez/rtl_coherent">rtl_coherent</a> project - software that  automatizes synchronization between receivers working on the same frequency with some additional hardware modifications required. He used additional synchronization signal that was introduced through switching of receivers' RF inputs to connect them to common noise signal generator and then reconnect them to antennas. But by that time I was already writing <code>Multi-rtl</code> and I was made aware of <code>rtl_coherent</code> project only recently - when I was finishing to write this text.</p>
+<p>In October 2015 Teejez has uploaded to the github his <a href="https://github.com/tejeez/rtl_coherent">rtl_coherent</a> project - software that automatizes synchronization between receivers working on the same frequency, with some additional hardware modifications required. He used additional synchronization signal that was introduced through switching of receivers' RF inputs to connect them to common noise signal generator and then reconnect them to antennas. I was made aware of <code>rtl_coherent</code> project only recently - when I was finishing to write this text.</p>
 
 <h2>
 <a id="capturing-gsm-downlink-and-uplink-with-multi-rtl" class="anchor" href="#capturing-gsm-downlink-and-uplink-with-multi-rtl" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Capturing GSM downlink and uplink with Multi-rtl</h2>
@@ -104,15 +107,15 @@ rtl_eeprom -d 0 -s 00000002</li>
 <a href="https://github.com/ptrkrysik/test_data/raw/master/sms_multirtl_uplink_tail.cfile">uplink capture file</a>.</li>
 </ul>
 
-<p>As I could recover the key used for my own call/SMS I was able to decode the encrypted part of the traffic with the SMS content. To decode the signal <a href="https://github.com/ptrkrysik/gr-gsm/wiki/Installation">installation of gr-gsm</a> is required. After that call the following copy the <a href="https://raw.githubusercontent.com/ptrkrysik/examples/master/uplink_decoding_demo/uplink_decoding_multi_rtl.py">uplink_decoding_multi_rtl.py</a> script from <code>gr-gsm</code>'s examples to the directory where the capture files are located, then start <code>Wireshark</code>:</p>
+<p>As I could recover the key used for my own call/SMS I was able to decode the encrypted part of the traffic with the SMS content. To decode the signal <a href="https://github.com/ptrkrysik/gr-gsm/wiki/Installation">installation of gr-gsm</a> is required. After that copy the <a href="https://raw.githubusercontent.com/ptrkrysik/examples/master/uplink_decoding_demo/uplink_decoding_multi_rtl.py">uplink_decoding_multi_rtl.py</a> script from <code>gr-gsm</code>'s examples to the directory where the capture files are located. Then start <code>Wireshark</code>:</p>
 
 <div class="highlight highlight-source-shell"><pre>wireshark -k -f udp -Y gsmtap -i lo <span class="pl-k">&amp;</span></pre></div>
 
-<p>and run the script:</p>
+<p>and run the script that does decryption and decoding:</p>
 
 <div class="highlight highlight-source-shell"><pre>./uplink_decoding_multi_rtl.py</pre></div>
 
-<p><code>Wireshark</code> should capture the decoded messages. Among them there is an SMS sent from the mobile station in the uplink channel. It is possible to view the content of the SMS in <code>Wireshark</code>:
+<p><code>Wireshark</code> should capture the decoded messages enabling analysis of the frames. Among them there is an SMS sent from the mobile station in the uplink channel. It is possible to view the content of the SMS in <code>Wireshark</code> like it is shown on theimage below:
 <img src="images/wireshark_uplinksms.png" alt="Uplink SMS in Wireshark"></p>
 
 <h2>
@@ -122,7 +125,7 @@ rtl_eeprom -d 0 -s 00000002</li>
 
 <p>For example - multiple receiving channels can be working on the same frequency. This enables applications like passive radar. One dongle can be connected to the antenna picking up reference signal and other receivers can be connected to antennas gathering objects' echoes. This possibility was shown by <a href="http://hackaday.com/2015/06/05/building-your-own-sdr-based-passive-radar-on-a-shoestring/">Juha Vierinen</a>. Time synchronization was (most probably) done in off-line processing - which is very fine for a proof of concept but not convenient for an user application. </p>
 
-<p>Regarding Teejez's <a href="https://github.com/tejeez/rtl_coherent">rtl_coherent</a> - it achieves the goal of synchronizing multiple RTL-SDR receivers working on the same carrier frequency but it requires additional noise source and switches to synchronize RTL-SDR receivers working on the same frequency. <code>Multi-rtl</code> receiver is simpler because it uses frequency switching (no RF switches required) and for synchronization it utilizes signals available in the air (additional generator is not necessary). Having a synchronization signal source that you control might be valuable for reliability of time-difference estimation but it increases cost a bit and adds some complication that might be harder to overcome by the newcomers.</p>
+<p>Regarding Teejez's <a href="https://github.com/tejeez/rtl_coherent">rtl_coherent</a> - it achieves the goal of synchronizing multiple RTL-SDR receivers working on the same central frequency but it requires additional noise source and switches to synchronize RTL-SDR receivers working on the same frequency. <code>Multi-rtl</code> receiver is simpler because it uses frequency switching (no RF switches required) and for synchronization it utilizes signals available in the air (additional generator is not necessary). Having a synchronization signal source that you control might be valuable for reliability of time-difference estimation but it increases cost a bit and adds some complication that might be harder to overcome by the newcomers.</p>
 
 <p><strong>With <code>Multi-rtl</code> all RX channel can also work synchronously on different central frequencies</strong>. Addition of this capability is the most original contribution that <code>Multi-rtl</code> brings to <code>RTL-SDR</code> world and it achieves that goal with simple and universal means. This makes possible many applications where received signals' are spread over frequency range that exceeds maximum sampling rate of a single <code>RTL-SDR</code> receiver, like:</p>
 
@@ -131,17 +134,12 @@ rtl_eeprom -d 0 -s 00000002</li>
 <li>reception of transmissions that use frequency hopping (like GSM hopping channels).</li>
 </ul>
 
-<p><code>Multi-rtl</code> also opens way for works on coherent aggregation of bandwidth of multiple <code>RTL-SDR</code> receivers in order to receive signals with bandwidth wider than sampling rate of a single receiver. </p>
-
-
+<p><code>Multi-rtl</code> also opens the way for works on coherent aggregation of bandwidth of multiple <code>RTL-SDR</code> receivers in order to receive signals with bandwidth wider than sampling rate of a single receiver. </p>
 
 <p>What is left to be done in the <code>Multi-rtl</code> is to add automatic resynchronization whenever some interruption in the communication with any of the receivers occurs. Currently an overflow of a buffer in a <code>RTL-SDR</code> receiver causes synchronization loss, until user call resynchronization function himself. <code>Multi-rtl</code> needs some way to know from <code>osmocom source</code> that an overflow happened. <code>osmocom source</code> doesn't inform <code>GNU Radio</code> blocks connected to it about communication problems yet, but it could send this information downstream with use of <code>GNU Radio</code>'s stream tags.</p>
       </section>
-      <footer>
-        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
-      </footer>
     </div>
-    <script src="javascripts/scale.fix.js"></script>
+
     
   </body>
 </html>
