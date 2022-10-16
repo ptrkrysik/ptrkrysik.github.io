@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <title>Piotr Krysik&#39;s fun with SDRs</title>
+  </head>
+
+  <body>
+
+    <header>
+      <div class="container">
+        <h1>Piotr Krysik&#39;s fun with SDRs</h1>
+        <h2></h2>
+      </div>
+    </header>
+
+    <div class="container">
+      <section id="main_content">
+        <h1>DPDK installation</h1>
+        <h2>source of never ending surprises</h2>
+
+        <p>I don’t have time for writing a full tutorial as it would have to be quite long. I’ll share my experience and findings regarding DPDK setup that I didn’t see anywhere on the Internet.</p>
+        <p>Process of installation of DPDK is taking a lot of time and each time I do it on a different PC I get into new set of surprises. After installing DPDK a year ago and using it successfully with USRP X310 I thought next time it will be much easier. I was wrong.</p>
+        <p>There’s so many places where something might go wrong and all you get is a cryptic error message or no error message at all.</p>
+        <h2>1. Enabling support for IOMMU in BIOS</h2>
+        <p>To use DPDK most of the time you will need VFIO (“Virtual Function I/O”). Unless you were lucky to get everything working with simpler UIO (“Userspace I/O”) you'll need to enable IOMMU support in computer's BIOS, as it's required by VFIO. For some reason on each PC I configured DPDK IOMMU is disabled by default. Not getting into details what IOMMU is (in the end you probably just want to get faster communication with USRP working and not became a virtualization expert) - there is no standard where to look for an option to enable IOMMU. You'll probably have to search everything and there are high chances that the option will not have "IOMMU" in its name. For example it might be called "Intel VT-d" or "Intel Virtualization Technology" or something like that for intel platforms.</p>
+        <h2>Too many DPDK libraries causing problems</h2>
+        <p>You enabled IOMMU and installed everything according to tutorials. You prepared /etc/uhd/uhd.conf config according to this page:</p>
+        <p>https://files.ettus.com/manual/page_dpdk.html</p>
+        <p>and avoided using big letters in mac addresses (this is a big no-no).</p>
+        <p>What might go wrong?</p>
+        <p>MANY things. For example missing the comment in the example uhd.conf:</p>
+        <pre>
+        <code>
+;Note that DPDK will attempt to load _everything_ in that folder as a driver, so you may want to
+
+;create a separate folder with symlinks to the librte_pmd_* and librte_mempool_* libraries.
+        </code>
+        </pre>
+        <p>The comment is a bit vague in its wording.</p>
+
+        <p>QUESTION: Is it necessary or it isn't?</p>
+        <p>ANSWER: it always is! (So it is not "may" but "must" or "shall" or whatever other word that is more appropriate for "you should absolutely do that" that exist in English.)</p>
+
+        <p>QUESTION: What happens if you wont do this?</p>
+        <p>ANSWER: the program will print (among many other things) something like "EAL: Invalid 'command line' arguments." and just exit.</p>
+
+        <p>QUESTION: Ok, so what to do exactly?</p>
+        <p>ANSWER: Previously I was carefully searching only for necessary libraries and step by step placing them in a separate directory until everything started working. Recently I started linking every library from with librte in its name from DPDK installation directory and sometimes this solution also works for me. I.e. it works on Ubuntu 20.04 with DPDK 19.11 installed from packages. Like this:</p>
+        <pre>
+        <code>
+------------------------------------------------------------
+DPDK_INSTALL_DIR=/usr/lib/x86_64-linux-gnu/
+cd ${DPDK_INSTALL_DIR}
+
+for lib in librte_*.so*; do
+   ln -sf ${DPDK_INSTALL_DIR}/$lib \
+     /usr/local/lib/x86_64-linux-gnu/dpdk-selected-pmds/$lib
+done
+------------------------------------------------------------
+        </code>
+        </pre>
+
+        <p>Sometimes linking everything doesn't work so in that case go back to selecting carefully libraries.</p>
+
+        <p>Then I set 'dpdk_driver' in the uhd.conf to:</p>
+        <code>
+dpdk_driver=/usr/local/lib/x86_64-linux-gnu/dpdk-selected-pmds
+        </code>
+        <h2>3. Next issue: Your computer puts many PCI Express devices in single IOMMU group together with network interfaces.</h2>
+        <p>I lived happily without even knowing what IOMMU grouping is until recently. And then this error hit me when I tried to use DPDK on a Gigabyte X399 Designare EX motherboard with a AMD Threadripper 2990WX:</p>
+        <pre>
+        <code>
+"Cannot request VFIO group fd
+pci id not managed by VFIO driver, skipping"
+        </code>
+        </pre>
+
+        <p>What the heck - I thought! I disconnected the kernel driver from the network card and replaced it with vfio-pci with use of dpdk-devbind.py program. What might be wrong?</p>
+
+        <p>After some time and after looking at dpdk source code and looking on the internet I've deciphered what this message means. The "VFIO group" is really IOMMU group.</p>
+        <p>What is wrong with it?</p>
+        <p>The network card is managed by IOMMU together with other PCIe devices (with whom it is "grouped") that still have their drivers loaded.</p>
+
+        <p>What to do?</p>
+        <p>One option is to try to find out what other devices are in the network card's group and disable them. Look at output of:</p>
+        <code> dmesg|grep 'iommu group'</code>
+
+        <p>find group of your PCIe device and other devices in the same group (lspci will also be helpful).</p>
+
+        <p>In my case I had nvme drive in the same group as the network card. I had to disable it (bad luck, I wanted to record signals to this nvme SSD):</p>
+        <pre>
+        <code>
+cd /sys/bus/pci/drivers/nvme
+echo '0000:41:00.0' |sudo tee unbind
+        </code>
+        </pre>
+
+        <p>What if you don't want/can't disable other devices?</p>
+        <p>You can try putting network card in another PCI Express slot.</p>
+        <p>That doesn't help?</p>
+        <p>Enabling 'PCIe Access Control Services (ACS)' in the BIOS can save the day.</p>
+        <p>You looked everywhere and you definetely don't have it in your BIOS?</p>
+        <p>Try updating the BIOS. I did and it was worth it. The option magically appeared in as random place as where I previously found option to enable IOMMU.</p>
+
+        <p>Enabling ACS causes that devices have their own IOMMU group. Or no IOMMU group at all as for some devices on my system after enabling ACS. But it was not a problem, crucial fact was that network card had its own group.</p>
+
+        <p>Don't be fooled too early. There might still be problems with IOMMU. For example after enabling ACS I had this error:</p>
+      <pre>
+        <code>
+EAL:   0000:08:00.1 failed to select IOMMU type
+EAL: Requested device 0000:08:00.1 cannot be used
+        </code>
+      </pre>
+
+        <p>Quite unhelpful error message, and there is of course nothing on DPDK mailing list telling what to do with it. But the kernel was a bit more talkative. In kernel logs I got:</p>
+        <code>vfio_iommu_type1_attach_group: No interrupt remapping support.  Use the module param "allow_unsafe_interrupts" to enable VFIO IOMMU support on this platform</code>
+
+        <p>So I tried to set "allow_unsafe_interrupts" kernel module option to see if it helps:</p>
+        <code> echo Y |sudo tee /sys/module/vfio_iommu_type1/parameters/allow_unsafe_interrupt</code>
+
+        <p>And this did the job. I moved to the next issue.</p>
+        <h2>4. Example of not getting any meaningful error message at all</h2>
+        <p>Consider this uhd.conf:</p>
+        <pre>
+        <code>
+[use_dpdk=1]
+dpdk_corelist=2,3,4
+...
+
+[dpdk_mac=f0:e0:e0:d0:b0:e0]
+dpdk_lcore = 5
+...
+        </code>
+        </pre>
+
+        <p>So I used here dpdk_lcore with number outside of dpdk_corelist. UHD based program will start successfully but after initial DPDK messages it will get stuck. Leaving you with no idea what might have gone wrong and what needs to be corrected.</p>
+
+        <p>Mistakes in config files might happen. Not getting any feedback what might be wrong leads to man-hours lost on side of users who dare to try DPDK.</p>
+
+        <h2>5. DPDK is working but it works worse than with regular network card driver from kernel</h2>
+
+            <p>Funny fact: if you run program with DPDK enabled with sudo it will get high priority.</p>
+            <p>This for some reason causes overflows to apppear very regularly. Not on one system but with any USRP type and PC that I tested it with. So chances are it is some kind of esotheric bug the tandem of UHD+DPDK.</p>
+
+            <p>One solution is to run program as a normal user. How to do it was previously described by Rob Kossler. Put in /etc/security/limits.conf:</p>
+            <pre>
+            <code>
+yourusername - memlock 2000000
+yourusername - nofile  2000
+yourusername - locks   2000
+            </code>
+            </pre>
+
+            <p>After dpdk-devbind.py run this:</p>
+            <pre>
+            <code>
+sudo chmod a+x /dev/vfio
+sudo chmod 0666 /dev/vfio/*
+sudo chmod a+w /dev/hugepages/
+            </code>
+            </pre>
+
+            <p>Still having issues? Some default values in uhd.conf from the example were wrong for me. For example
+                the program was much more stable after increasing 'dpdk_num_mbufs' value to 8192.</p>
+            <h2>Summary</h2>
+            <p>DPDK when it is installed and configured correctly can give significant difference for UHD - i.e. between having unpredictable overflows when receiving high throughput data and not getting overflows at all.</p>
+            <p>UHD+DPDK installation and configuration is currently way too hard and usually takes many days on each new computer configuration before it starts to do it job.</p>
+      </section>
+    </div>
+  </body>
+</html>
