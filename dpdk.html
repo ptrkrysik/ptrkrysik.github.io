@@ -30,7 +30,7 @@
         <p>There’s so many places where something might go wrong and all you get is a cryptic error message or no error message at all.</p>
         <h2>1. Enabling support for IOMMU in BIOS</h2>
         <p>To use DPDK most of the time you will need VFIO (“Virtual Function I/O”). Unless you were lucky to get everything working with simpler UIO (“Userspace I/O”) you'll need to enable IOMMU support in computer's BIOS, as it's required by VFIO. For some reason on each PC I configured DPDK IOMMU is disabled by default. Not getting into details what IOMMU is (in the end you probably just want to get faster communication with USRP working and not became a virtualization expert) - there is no standard where to look for an option to enable IOMMU. You'll probably have to search everything and there are high chances that the option will not have "IOMMU" in its name. For example it might be called "Intel VT-d" or "Intel Virtualization Technology" or something like that for intel platforms.</p>
-        <h2>Too many DPDK libraries causing problems</h2>
+        <h2>2. Too many DPDK libraries causing problems</h2>
         <p>You enabled IOMMU and installed everything according to tutorials. You prepared /etc/uhd/uhd.conf config according to this page:</p>
         <p>https://files.ettus.com/manual/page_dpdk.html</p>
         <p>and avoided using big letters in mac addresses (this is a big no-no).</p>
