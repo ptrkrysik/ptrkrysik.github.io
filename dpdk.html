@@ -147,7 +147,7 @@ dpdk_lcore = 5
         <h2>5. DPDK is working but it works worse than with regular network card driver from kernel</h2>
 
             <p>Funny fact: if you run program with DPDK enabled with sudo it will get high priority.</p>
-            <p>This for some reason causes overflows to apppear very regularly. Not on one system but with any USRP type and PC that I tested it with. So chances are it is some kind of esotheric bug the tandem of UHD+DPDK.</p>
+            <p>This for some reason causes overflows to apppear very regularly. Not on one system but with any USRP type and PC that I tested it with. So chances are it is some kind of esotheric bug in the tandem of UHD+DPDK.</p>
 
             <p>One solution is to run program as a normal user. How to do it was previously described by Rob Kossler. Put in /etc/security/limits.conf:</p>
             <pre>
